@@ -14,17 +14,39 @@ def _resolve_small_eq(op, num1, num2):
         return float(num1)**float(num2)
     elif op == "^":
         return float(num1)**float(num2)
-    #elif op == "":
-    #    return num1+num2
 
-def resolve_expr(exp):
+def resolve_expr(exp, **keys):
     ops = [
         r"(-{0,1}[0-9.]+\*\*-{0,1}[0-9.]+|-{0,1}[0-9.]+\^-{0,1}[0-9.-]+)",
         r"(-{0,1}[0-9.]+\*-{0,1}[0-9.]+|-{0,1}[0-9.]+\/-{0,1}[0-9.-]+)",
         r"(-{0,1}[0-9.]+\+-{0,1}[0-9.]+|-{0,1}[0-9.]+\--{0,1}[0-9.-]+)",
     ]
     results = []
-    exp = exp.replace(" ", "")
+
+    keys = keys | {
+        " ": "",
+        "½": "1/2",
+        "⅓": "1/3",
+        "⅔": "2/3",
+        "¼": "1/4",
+        "¾": "3/4",
+        "⅕": "1/5",
+        "⅖": "2/5",
+        "⅗": "3/5",
+        "⅘": "4/5",
+        "⅙": "1/6",
+        "⅚": "5/6",
+        "⅐": "1/7",
+        "⅛": "1/8",
+        "⅜": "3/8",
+        "⅝": "5/8",
+        "⅞": "7/8",
+        "⅑": "1/9",
+        "⅒": "1/10",
+    }
+    for k, r in keys.items():
+        exp = exp.replace(k, r)
+
     p = 0
     current = []
     for c, i in enumerate(list(exp)):
@@ -41,7 +63,7 @@ def resolve_expr(exp):
                 current = []
 
     replacables = {f"({exp[i[0]+1:i[1]]})": exp[i[0]+1:i[1]] for i in results}
-    
+
     for k, i in replacables.items():
         exp = exp.replace(k, resolve_expr(i))
 
