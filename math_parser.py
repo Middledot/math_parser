@@ -6,7 +6,6 @@ def _resolve_simple_eq(op, num1, num2):
     if op == "+":
         return float(num1)+float(num2)
     elif op == "-":
-        print(num1, op, num2)
         return float(num1)-float(num2)
     elif op == "*":
         return float(num1)*float(num2)
