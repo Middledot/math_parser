@@ -1,5 +1,4 @@
 import re
-
 from typing import Union, Optional, Dict, List, Tuple
 
 def _resolve_simple_eq(op, num1, num2):
@@ -24,13 +23,13 @@ def resolve_expr(expr: str, **keys: Dict[str, str]) -> Union[int, float]:
     IS_FLOAT: str = r"^-?\d+(?:\.\d+)$"
 
     ops: List[Tuple[str]] = [
-        ("^", "**"),
+        ("^"),  # TODO: , "**"),
         ("*", "/"),
         ("+", "-"),
     ]
     all_ops: List[str] = [
         "^",
-        "**",
+        #"**",  # TODO
         "*",
         "/",
         "+",
@@ -102,54 +101,112 @@ def resolve_expr(expr: str, **keys: Dict[str, str]) -> Union[int, float]:
                 current_op = o
                 break
 
-        check_for_min = True
-        for ind, _char in enumerate(expr):
-            if (_char.isdigit() or
-                _char == "." or
-                (
-                    check_for_min == True and
-                    _char == "-" and
+        check_for_extra_char = True
+        if "^" not in current_op:
+            for ind, char in enumerate(expr):
+                if (char.isdigit() or
+                    char == "." or
                     (
-                        (first_current_num is None and expr[(ind-1 if ind-1 != -1 else ind)] in all_ops) or
-                        (first_current_num is not None and sec_current_num is None and expr[ind-1] in all_ops)
+                        check_for_extra_char == True and
+                        char == "-" and
+                        (
+                            (first_current_num is None and expr[(ind-1 if ind-1 != -1 else ind)] in all_ops) or
+                            (first_current_num is not None and sec_current_num is None and expr[ind-1] in all_ops)
+                        )
                     )
-                )
-            ):
-                if not first_num_ready:
-                    if first_current_num == None:
-                        first_current_num = _char
+                ):
+                    if not first_num_ready:
+                        if first_current_num == None:
+                            first_current_num = char
+                        else:
+                            first_current_num = first_current_num+char
                     else:
-                        first_current_num = first_current_num+_char
+                        if sec_current_num == None:
+                            sec_current_num = char
+                        else:
+                            sec_current_num = sec_current_num+char
+                    if char == "-":
+                        check_for_extra_char = False
                 else:
-                    if sec_current_num == None:
-                        sec_current_num = _char
+                    check_for_extra_char = True
+
+                if (
+                    char in all_ops or # It's another operator # also does check for current op
+                    (char == "-" and check_for_extra_char is not False) or
+                    ind == len(expr)-1 # End of the string
+                ):
+                    if char == "-":
+                        if check_for_extra_char is False:
+                            continue
+
+                    if not first_num_ready and first_current_num != None:
+                        first_num_ready = True
+                        actual_op = char
                     else:
-                        sec_current_num = sec_current_num+_char
-                if _char == "-":
-                    check_for_min = False
-            else:
-                check_for_min = True
+                        eq = f"{first_current_num}{actual_op}{sec_current_num}"
+                        eq_res = _resolve_simple_eq(actual_op, float(first_current_num), float(sec_current_num))
+                        new_str = expr.replace(eq, str(eq_res))
+                        return resolve_expr(new_str)
+        else:
+            to_eval = []  # not actual eval
+            _current = 0
+            def safe_list_get(l, id, default=None):
+                try:
+                    return l[id]
+                except IndexError:
+                    return default
+            for ind, char in enumerate(expr):
+                if (
+                    char.isdigit() or
+                    char == "." or(
+                        check_for_extra_char == True and
+                        char == "-" and
+                        (
+                            (expr[(ind+1 if ind+1 != len(expr)-1 else ind)].isdigit() and expr[(ind-1 if ind-1 != -1 else ind)] in all_ops) or
+                            (first_current_num is not None and sec_current_num is None and expr[ind-1] in all_ops)
+                        )
+                    )
+                ):
+                    if safe_list_get(to_eval, _current) == None:
+                        to_eval.append([char, None])
+                    else:
+                        to_eval[_current][0] = to_eval[_current][0]+char
 
-            if (
-                _char in current_op or # It's an operator in use
-                _char in all_ops or # and (sec_current_num != None)) or # It's another operator
-                (_char == "-" and check_for_min is not False) or
-                ind == len(expr)-1 # End of the string
-            ):
-                if _char == "-":
-                    if check_for_min is False:
-                        continue
+                if (
+                    char in all_ops or
+                    (char == "-" and check_for_extra_char is not False) or
+                    ind == len(expr)-1
+                ):
+                    if char == "-":
+                        if check_for_extra_char is False:
+                            continue
 
-                if not first_num_ready and first_current_num != None:
-                    first_num_ready = True
-                    actual_op = _char
-                else:
-                    eq = f"{first_current_num}{actual_op}{sec_current_num}"
-                    eq_res = _resolve_simple_eq(actual_op, float(first_current_num), float(sec_current_num))
-                    new_str = expr.replace(eq, str(eq_res))
-                    return resolve_expr(new_str)
-            elif _char in all_ops and (sec_current_num != None):
-                pass
+                    if char in current_op:
+                        _current += 1
+                        to_eval.append(["", char])
+                    else:
+                        if len(to_eval) == 2:
+                            eq = f"{to_eval[0]}{actual_op}{to_eval[1]}"
+                            eq_res = _resolve_simple_eq(actual_op, float(first_current_num), float(sec_current_num))
+                            new_str = expr.replace(eq, str(eq_res))
+                            return resolve_expr(new_str)
+                        else:
+                            full_eq = ""
+                            new_nums = []
+                            for _i in to_eval:
+                                num = _i[0]
+                                _op = _i[1]
+                                if _op is None:
+                                    full_eq += num
+                                else:
+                                    full_eq += f"{_op}{num}"
+                                new_nums.append(num)
+                            res = 1
+                            for _ in reversed(new_nums):
+                                res = float(_)**res
+                            new_str = expr.replace(full_eq, str(res))
+                            return resolve_expr(new_str)
+
 
     try:
         res = int(float(expr))
