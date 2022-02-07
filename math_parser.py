@@ -2,18 +2,16 @@ import re
 from typing import Union, Optional, Dict, List, Tuple
 
 def _resolve_simple_eq(op, num1, num2):
-    if op == "+":
+    if op == "*":
+        return float(num1)*float(num2)
+    elif op in ["**", "^"]:
+        return float(num1)**float(num2)
+    elif op == "+":
         return float(num1)+float(num2)
     elif op == "-":
         return float(num1)-float(num2)
-    elif op == "*":
-        return float(num1)*float(num2)
     elif op == "/":
         return float(num1)/float(num2)
-    elif op == "**":
-        return float(num1)**float(num2)
-    elif op == "^":
-        return float(num1)**float(num2)
 
 def _op_in_expr(expr, op):
     return any(o in expr for o in op)
