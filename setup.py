@@ -3,8 +3,6 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as fp:
     long_description = fp.read()
 
-packages = ["math_parser.py"]
-
 setuptools.setup(
     name="disno",
     version="0.1.1",
@@ -22,6 +20,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    packages=packages,
+    py_modules=['math_parser'],
     python_requires=">=3.7",
 )
