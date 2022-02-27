@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fp:
     long_description = fp.read()
 
 setuptools.setup(
-    name="disno",
+    name="MathParser",
     version="0.1.1",
     author="Middledot",
     author_email="middledot.productions@gmail.com",
