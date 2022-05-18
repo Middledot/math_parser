@@ -13,8 +13,7 @@ def _resolve_simple_eq(op, num1, num2) -> NumberType:
     if op == "*":
         return num1*num2
     elif op in ["**", "^"]:
-        res = num1**num2
-        return res
+        return num1**num2
     elif op == "+":
         return num1+num2
     elif op == "-":
