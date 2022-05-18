@@ -10,16 +10,10 @@ MAPPED_OPERATORS = [
 NumberType = Union[int, float]
 
 def _resolve_simple_eq(op, num1, num2) -> NumberType:
-    print("================================================")
-    print(op, num1, num2)
-    print(op in ["**", "^"])
-    print(num1**num2)
-    print("================================================")
     if op == "*":
         return num1*num2
     elif op in ["**", "^"]:
         res = num1**num2
-        print("hjeer:::", res)
         return res
     elif op == "+":
         return num1+num2
