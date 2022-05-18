@@ -10,10 +10,17 @@ MAPPED_OPERATORS = [
 NumberType = Union[int, float]
 
 def _resolve_simple_eq(op, num1, num2) -> NumberType:
+    print("================================================")
+    print(op, num1, num2)
+    print(op in ["**", "^"])
+    print(num1**num2)
+    print("================================================")
     if op == "*":
         return num1*num2
     elif op in ["**", "^"]:
-        return num1**num2
+        res = num1**num2
+        print("hjeer:::", res)
+        return res
     elif op == "+":
         return num1+num2
     elif op == "-":
@@ -143,15 +150,15 @@ def resolve_expr(expr: str, **keys: Dict[str, str]) -> NumberType:
 
     return resolve_from_listable(listable)
 
-def to_num_type(string) -> NumberType:
-    try:
-        res = float(string)
-    except ValueError:
-        return int(string)
-    else:
-        if round(res) == res:
-            res = int(res)
-        return res
+def to_num_type(string: str) -> NumberType:
+    if "." in string and ".0" not in string:
+        try:
+            res = float(string)
+        except ValueError:
+            return int(string)
+        else:
+            return res
+    return int(string)
 
 def resolve_from_listable(listable) -> NumberType:
     for ops in MAPPED_OPERATORS:
