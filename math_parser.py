@@ -144,7 +144,9 @@ def resolve_expr(expr: str, **keys: Dict[str, str]) -> NumberType:
     return resolve_from_listable(listable)
 
 def to_num_type(string: str) -> NumberType:
-    if "." in string and ".0" not in string:
+    if string.endswith(".0"):
+        string = string.split(".", 1)[0]
+    if "." in string:
         try:
             res = float(string)
         except ValueError:
@@ -171,7 +173,7 @@ def resolve_from_listable(listable) -> NumberType:
             smallest = min(shortest_res.keys())
             the_op = shortest_res[smallest]
 
-            num1, num2 = to_num_type(listable[smallest-1]), to_num_type(listable[smallest+1])
+            num1, num2 = to_num_type(str(listable[smallest-1])), to_num_type(str(listable[smallest+1]))
 
             result = to_num_type(str(_resolve_simple_eq(the_op, num1, num2)))
 
